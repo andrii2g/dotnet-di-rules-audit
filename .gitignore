@@ -1,1 +1,8 @@
 PLAN.md
+DI_AUDIT_REPORT.md
+.dotnet-home/
+.nuget-packages/
+bin/
+obj/
+TestResults/
+/.vs/DotnetDiRulesAudit.slnx/FileContentIndex
