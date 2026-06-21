@@ -30,7 +30,7 @@ public sealed record TypeIdentity(
             symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).Replace("global::", "", StringComparison.Ordinal),
             symbol.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).Replace("global::", "", StringComparison.Ordinal),
             symbol.ContainingAssembly?.Identity.Name,
-            SymbolKey.Create(symbol.OriginalDefinition, CancellationToken.None).ToString());
+            null);
     }
 
     public static TypeIdentity FromDisplay(string displayName)
@@ -119,4 +119,3 @@ public sealed record DiAuditResult(
     IReadOnlyList<ConstructorDependency> ConstructorDependencies,
     DependencyGraph Graph,
     IReadOnlyList<DiFinding> Findings);
-

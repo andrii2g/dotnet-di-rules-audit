@@ -75,6 +75,6 @@ public sealed class ConstructorScanner
             .OrderByDescending(c => c.Parameters.Length)
             .FirstOrDefault();
 
-        return primaryConstructor?.Parameters ?? Array.Empty<IParameterSymbol>();
+        return primaryConstructor?.Parameters.ToArray() ?? Array.Empty<IParameterSymbol>();
     }
 }
