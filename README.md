@@ -10,7 +10,7 @@ From the repository root:
 export DOTNET_CLI_HOME="$PWD/.dotnet-home"
 export NUGET_PACKAGES="$PWD/.nuget-packages"
 dotnet restore DotnetDiRulesAudit.slnx --configfile NuGet.Config
-dotnet test DotnetDiRulesAudit.slnx --no-restore
+dotnet run --no-restore --project tests/DotnetDiRulesAudit.Tests
 ```
 
 Run the clean sample:
