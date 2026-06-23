@@ -1,6 +1,6 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
-namespace DotnetDiRulesAudit.Model;
+namespace A2G.DIRulesAudit.Model;
 
 public enum ServiceLifetimeKind
 {

@@ -1,4 +1,4 @@
-namespace DotnetDiRulesAudit.Loading;
+﻿namespace A2G.DIRulesAudit.Loading;
 
 public enum InputKind
 {

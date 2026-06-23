@@ -1,4 +1,4 @@
-namespace DotnetDiRulesAudit.Cli;
+﻿namespace A2G.DIRulesAudit.Cli;
 
 public sealed record CliOptions(string InputPath)
 {

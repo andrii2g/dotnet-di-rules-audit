@@ -1,7 +1,7 @@
-using DotnetDiRulesAudit.Analysis;
+﻿using A2G.DIRulesAudit.Analysis;
 using FluentAssertions;
 
-namespace DotnetDiRulesAudit.Tests;
+namespace A2G.DIRulesAudit.Tests;
 
 public sealed class IntegrationTests
 {

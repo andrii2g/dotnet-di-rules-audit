@@ -1,8 +1,8 @@
-using DotnetDiRulesAudit.Model;
-using DotnetDiRulesAudit.Rules;
+﻿using A2G.DIRulesAudit.Model;
+using A2G.DIRulesAudit.Rules;
 using FluentAssertions;
 
-namespace DotnetDiRulesAudit.Tests;
+namespace A2G.DIRulesAudit.Tests;
 
 public sealed class RuleTests
 {

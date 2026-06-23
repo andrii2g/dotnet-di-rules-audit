@@ -1,8 +1,8 @@
-using DotnetDiRulesAudit.Model;
+﻿using A2G.DIRulesAudit.Model;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace DotnetDiRulesAudit.Analysis;
+namespace A2G.DIRulesAudit.Analysis;
 
 public sealed class ConstructorScanner
 {

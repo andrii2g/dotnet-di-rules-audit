@@ -1,5 +1,5 @@
-using DotnetDiRulesAudit.Analysis;
-using DotnetDiRulesAudit.Cli;
+﻿using A2G.DIRulesAudit.Analysis;
+using A2G.DIRulesAudit.Cli;
 
 var options = CliParser.Parse(args, Console.Error);
 if (options is null)

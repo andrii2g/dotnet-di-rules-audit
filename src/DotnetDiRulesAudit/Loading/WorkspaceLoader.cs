@@ -1,8 +1,8 @@
-using Microsoft.Build.Locator;
+﻿using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
-namespace DotnetDiRulesAudit.Loading;
+namespace A2G.DIRulesAudit.Loading;
 
 public sealed record ProjectLoadResult(
     IReadOnlyList<Project> Projects,
@@ -17,7 +17,7 @@ public sealed class WorkspaceLoader
 
         using var workspace = MSBuildWorkspace.Create();
         var diagnostics = new List<string>();
-        workspace.WorkspaceFailed += (_, e) => diagnostics.Add($"{e.Diagnostic.Kind}: {e.Diagnostic.Message}");
+        workspace.RegisterWorkspaceFailedHandler(e => diagnostics.Add($"{e.Diagnostic.Kind}: {e.Diagnostic.Message}"));
 
         try
         {

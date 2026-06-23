@@ -1,7 +1,7 @@
-using DotnetDiRulesAudit.Model;
+﻿using A2G.DIRulesAudit.Model;
 using Microsoft.CodeAnalysis;
 
-namespace DotnetDiRulesAudit.Analysis;
+namespace A2G.DIRulesAudit.Analysis;
 
 public sealed class FrameworkTypeClassifier
 {

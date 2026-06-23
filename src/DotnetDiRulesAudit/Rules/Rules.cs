@@ -1,9 +1,9 @@
-using DotnetDiRulesAudit.Analysis;
-using DotnetDiRulesAudit.Model;
+﻿using A2G.DIRulesAudit.Analysis;
+using A2G.DIRulesAudit.Model;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace DotnetDiRulesAudit.Rules;
+namespace A2G.DIRulesAudit.Rules;
 
 public interface IDiRule
 {

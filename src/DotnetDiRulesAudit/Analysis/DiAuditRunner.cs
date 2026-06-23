@@ -1,10 +1,10 @@
-using DotnetDiRulesAudit.Loading;
-using DotnetDiRulesAudit.Model;
-using DotnetDiRulesAudit.Reporting;
-using DotnetDiRulesAudit.Rules;
+﻿using A2G.DIRulesAudit.Loading;
+using A2G.DIRulesAudit.Model;
+using A2G.DIRulesAudit.Reporting;
+using A2G.DIRulesAudit.Rules;
 using System.Diagnostics;
 
-namespace DotnetDiRulesAudit.Analysis;
+namespace A2G.DIRulesAudit.Analysis;
 
 public sealed class DiAuditRunner
 {

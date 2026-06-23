@@ -1,7 +1,7 @@
-using System.Text;
-using DotnetDiRulesAudit.Model;
+﻿using System.Text;
+using A2G.DIRulesAudit.Model;
 
-namespace DotnetDiRulesAudit.Reporting;
+namespace A2G.DIRulesAudit.Reporting;
 
 public sealed class MarkdownReportWriter
 {

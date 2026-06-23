@@ -5,6 +5,7 @@ DI_AUDIT_REPORT.md
 bin/
 obj/
 TestResults/
+.vs/
 /.vs/DotnetDiRulesAudit.slnx/FileContentIndex
 /.vs/DotnetDiRulesAudit.slnx/config
 /.vs/DotnetDiRulesAudit.slnx/DesignTimeBuild

@@ -1,6 +1,6 @@
-using DotnetDiRulesAudit.Model;
+﻿using A2G.DIRulesAudit.Model;
 
-namespace DotnetDiRulesAudit.Analysis;
+namespace A2G.DIRulesAudit.Analysis;
 
 public sealed class ServiceGraphBuilder
 {
