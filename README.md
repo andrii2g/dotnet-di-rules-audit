@@ -53,6 +53,12 @@ dotnet run --project src/DotnetDiRulesAudit -- /path/to/YourProject.csproj
 dotnet run --project src/DotnetDiRulesAudit -- /path/to/repo
 ```
 
+For multi-targeted projects, the analyzer keeps one loaded target-framework instance per project file. By default it uses the first target framework loaded by MSBuildWorkspace. To prefer a specific TFM for multi-targeted projects:
+
+```bash
+dotnet run --project src/DotnetDiRulesAudit -- --framework net8.0 /path/to/YourSolution.sln
+```
+
 ## Usage
 
 ```bash

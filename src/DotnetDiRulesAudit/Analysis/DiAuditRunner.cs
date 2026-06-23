@@ -15,11 +15,20 @@ public sealed class DiAuditRunner
     private readonly ServiceGraphBuilder _graphBuilder = new();
     private readonly MarkdownReportWriter _reportWriter = new();
 
-    public async Task<int> RunAsync(string inputPath, string reportPath, CancellationToken cancellationToken)
+    public Task<int> RunAsync(string inputPath, string reportPath, CancellationToken cancellationToken)
+    {
+        return RunAsync(inputPath, reportPath, targetFramework: null, cancellationToken);
+    }
+
+    public async Task<int> RunAsync(string inputPath, string reportPath, string? targetFramework, CancellationToken cancellationToken)
     {
         var progress = new AuditProgress();
         progress.Write("Starting Dependency Injection audit.");
         progress.Write($"Input path: {inputPath}");
+        if (!string.IsNullOrWhiteSpace(targetFramework))
+        {
+            progress.Write($"Preferred target framework: {targetFramework}");
+        }
 
         InputResolution resolution;
         try
@@ -40,7 +49,7 @@ public sealed class DiAuditRunner
 
         progress.Write($"Input selected: {resolution.SelectedPath}");
         progress.Write("Loading solution/project with MSBuildWorkspace. This can take a while on large repositories...");
-        var loadResult = await _workspaceLoader.LoadAsync(resolution, cancellationToken);
+        var loadResult = await _workspaceLoader.LoadAsync(resolution, targetFramework, cancellationToken);
         if (loadResult.HasCriticalErrors)
         {
             progress.Write("Workspace load failed. Writing diagnostic report...");
@@ -119,7 +128,7 @@ public sealed class DiAuditRunner
 
         public void Write(string message)
         {
-            Console.WriteLine($"[{_stopwatch.Elapsed:hh\\:mm\\:ss}] {message}");
+            Console.WriteLine($"[{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss zzz} | +{_stopwatch.Elapsed:hh\\:mm\\:ss}] {message}");
         }
     }
 }

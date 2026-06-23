@@ -44,11 +44,14 @@ public sealed class PreferInterfacesRule : IDiRule
 
     public IReadOnlyList<DiFinding> Analyze(RuleContext context)
     {
-        return context.ConstructorDependencies
+        context.Progress?.Invoke($"{RuleId}: checking {context.ConstructorDependencies.Count} constructor dependency record(s) against {context.Registrations.Count} registration(s).");
+        var findings = context.ConstructorDependencies
             .Where(d => d.IsConcreteType && !d.IsFrameworkType && context.Registrations.Any(r => r.ImplementationType?.SameType(d.ParameterType) == true))
             .Select(d => RuleHelpers.Finding(RuleId, Name, DiFindingSeverity.Warning, $"Concrete application service `{d.ParameterType.DisplayName}` is injected into `{d.DeclaringType.DisplayName}`.", d.Location, 0.85,
                 "Inject an interface when the dependency is a replaceable application service."))
             .ToArray();
+        context.Progress?.Invoke($"{RuleId}: checked constructor dependencies, findings {findings.Length}.");
+        return findings;
     }
 }
 
@@ -59,12 +62,15 @@ public sealed class ConstructorDependencyCountRule : IDiRule
 
     public IReadOnlyList<DiFinding> Analyze(RuleContext context)
     {
-        return context.ConstructorDependencies
+        context.Progress?.Invoke($"{RuleId}: grouping {context.ConstructorDependencies.Count} constructor dependency record(s) by declaring type.");
+        var findings = context.ConstructorDependencies
             .GroupBy(d => d.DeclaringType)
             .Where(g => g.Count() >= 7)
             .Select(g => RuleHelpers.Finding(RuleId, Name, DiFindingSeverity.Warning, $"`{g.Key.DisplayName}` has {g.Count()} constructor dependencies.", g.First().Location, 0.90,
                 "Review responsibilities and split the type when there is a clear boundary."))
             .ToArray();
+        context.Progress?.Invoke($"{RuleId}: constructor dependency grouping completed, findings {findings.Length}.");
+        return findings;
     }
 }
 
@@ -103,14 +109,17 @@ public sealed class RegistrationOrganizationRule : IDiRule
 
     public IReadOnlyList<DiFinding> Analyze(RuleContext context)
     {
+        context.Progress?.Invoke($"{RuleId}: scanning {context.Registrations.Count} registration(s) for direct Program.cs registrations.");
         var programRegistrations = context.Registrations
             .Where(r => r.Location?.FilePath.EndsWith("Program.cs", StringComparison.OrdinalIgnoreCase) == true)
             .ToArray();
 
-        return programRegistrations.Length >= 20
+        DiFinding[] findings = programRegistrations.Length >= 20
             ? [RuleHelpers.Finding(RuleId, Name, DiFindingSeverity.Info, $"Program.cs contains {programRegistrations.Length} direct registrations.", programRegistrations[0].Location, 0.70,
                 "Move related registrations into IServiceCollection extension methods.")]
             : [];
+        context.Progress?.Invoke($"{RuleId}: found {programRegistrations.Length} direct Program.cs registration(s), findings {findings.Length}.");
+        return findings;
     }
 }
 
@@ -121,11 +130,26 @@ public sealed class StartupValidationRule : IDiRule
 
     public IReadOnlyList<DiFinding> Analyze(RuleContext context)
     {
-        var hasValidation = context.Projects.Any(project => ProjectContains(project, "UseDefaultServiceProvider") && ProjectContains(project, "ValidateScopes") && ProjectContains(project, "ValidateOnBuild"));
-        return hasValidation
+        context.Progress?.Invoke($"{RuleId}: checking startup validation patterns across {context.Projects.Count} project(s).");
+        var checkedProjects = 0;
+        var hasValidation = false;
+        foreach (var project in context.Projects)
+        {
+            checkedProjects++;
+            context.Progress?.Invoke($"{RuleId}: checking project {checkedProjects}/{context.Projects.Count}: {project.Name}.");
+            if (ProjectContains(project, "UseDefaultServiceProvider") && ProjectContains(project, "ValidateScopes") && ProjectContains(project, "ValidateOnBuild"))
+            {
+                hasValidation = true;
+                break;
+            }
+        }
+
+        DiFinding[] findings = hasValidation
             ? []
             : [RuleHelpers.Finding(RuleId, Name, DiFindingSeverity.Warning, "DI validation was not detected.", null, 0.75,
                 "Enable ValidateScopes and ValidateOnBuild in Development, Test, or CI.")];
+        context.Progress?.Invoke($"{RuleId}: startup validation check completed, validation detected: {hasValidation}, findings {findings.Length}.");
+        return findings;
     }
 
     private static bool ProjectContains(Project project, string text)
@@ -142,16 +166,29 @@ public sealed class ServiceLocatorUsageRule : IDiRule
     public IReadOnlyList<DiFinding> Analyze(RuleContext context)
     {
         var findings = new List<DiFinding>();
-        foreach (var project in context.Projects.Where(p => !AnalysisHelpers.IsTestProject(p)))
+        var projects = context.Projects.Where(p => !AnalysisHelpers.IsTestProject(p)).ToArray();
+        context.Progress?.Invoke($"{RuleId}: scanning service locator usage across {projects.Length} non-test project(s).");
+        for (var projectIndex = 0; projectIndex < projects.Length; projectIndex++)
         {
+            var project = projects[projectIndex];
+            context.Progress?.Invoke($"{RuleId}: loading compilation for project {projectIndex + 1}/{projects.Length}: {project.Name}.");
             var compilation = project.GetCompilationAsync().GetAwaiter().GetResult();
             if (compilation is null)
             {
+                context.Progress?.Invoke($"{RuleId}: skipped project {project.Name}; compilation was null.");
                 continue;
             }
 
-            foreach (var tree in compilation.SyntaxTrees.Where(t => !AnalysisHelpers.IsGeneratedFile(t)))
+            var trees = compilation.SyntaxTrees.Where(t => !AnalysisHelpers.IsGeneratedFile(t)).ToArray();
+            context.Progress?.Invoke($"{RuleId}: scanning {trees.Length} syntax tree(s) in project {project.Name}.");
+            for (var treeIndex = 0; treeIndex < trees.Length; treeIndex++)
             {
+                var tree = trees[treeIndex];
+                if ((treeIndex + 1) % 25 == 0 || treeIndex == 0 || treeIndex == trees.Length - 1)
+                {
+                    context.Progress?.Invoke($"{RuleId}: project {project.Name}, syntax tree {treeIndex + 1}/{trees.Length}, findings so far {findings.Count}.");
+                }
+
                 var root = tree.GetRoot();
                 foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
                 {
@@ -184,6 +221,7 @@ public sealed class ServiceLocatorUsageRule : IDiRule
             }
         }
 
+        context.Progress?.Invoke($"{RuleId}: service locator scan completed, findings {findings.Count}.");
         return findings;
     }
 }
@@ -196,20 +234,51 @@ public sealed class CircularDependencyRule : IDiRule
     public IReadOnlyList<DiFinding> Analyze(RuleContext context)
     {
         var cycles = new List<IReadOnlyList<DependencyEdge>>();
-        foreach (var edge in context.Graph.Edges.Where(e => e.IsResolved && !e.IsFrameworkType))
+        var rootEdges = context.Graph.Edges.Where(e => e.IsResolved && !e.IsFrameworkType).ToArray();
+        var traversedEdges = 0;
+        var stopwatch = Stopwatch.StartNew();
+        var lastProgress = TimeSpan.Zero;
+
+        context.Progress?.Invoke($"{RuleId}: circular dependency search started: {rootEdges.Length} root edge(s), {context.Graph.Edges.Count} total edge(s).");
+
+        for (var i = 0; i < rootEdges.Length; i++)
         {
-            FindCycles(context.Graph, edge, edge.FromType, [], cycles);
+            FindCycles(context.Graph, rootEdges[i], rootEdges[i].FromType, [], cycles, ref traversedEdges, () =>
+            {
+                if (stopwatch.Elapsed - lastProgress < TimeSpan.FromSeconds(2))
+                {
+                    return;
+                }
+
+                lastProgress = stopwatch.Elapsed;
+                context.Progress?.Invoke($"{RuleId}: circular dependency search still running: root {i + 1}/{rootEdges.Length}, traversed {traversedEdges} edge visit(s), cycles so far {cycles.Count}.");
+            });
         }
 
-        return cycles
+        var findings = cycles
             .DistinctBy(RuleHelpers.CanonicalCycleKey)
             .Select(cycle => RuleHelpers.Finding(RuleId, Name, DiFindingSeverity.Error, $"Circular dependency detected: {RuleHelpers.FormatPath(cycle)}.", cycle.First().Location, 1.00,
                 "Break the cycle by extracting shared logic, splitting responsibilities, or moving orchestration into a separate service."))
             .ToArray();
+        context.Progress?.Invoke($"{RuleId}: circular dependency search completed: traversed {traversedEdges} edge visit(s), raw cycles {cycles.Count}, findings {findings.Length}.");
+        return findings;
     }
 
-    private static void FindCycles(DependencyGraph graph, DependencyEdge current, TypeIdentity target, List<DependencyEdge> path, List<IReadOnlyList<DependencyEdge>> cycles)
+    private static void FindCycles(
+        DependencyGraph graph,
+        DependencyEdge current,
+        TypeIdentity target,
+        List<DependencyEdge> path,
+        List<IReadOnlyList<DependencyEdge>> cycles,
+        ref int traversedEdges,
+        Action reportProgress)
     {
+        traversedEdges++;
+        if (traversedEdges % 1_000 == 0)
+        {
+            reportProgress();
+        }
+
         if (path.Count > 20)
         {
             return;
@@ -230,7 +299,7 @@ public sealed class CircularDependencyRule : IDiRule
                 continue;
             }
 
-            FindCycles(graph, next, target, path, cycles);
+            FindCycles(graph, next, target, path, cycles, ref traversedEdges, reportProgress);
         }
 
         path.RemoveAt(path.Count - 1);
@@ -245,11 +314,14 @@ public sealed class OptionsPatternRule : IDiRule
 
     public IReadOnlyList<DiFinding> Analyze(RuleContext context)
     {
-        return context.ConstructorDependencies
+        context.Progress?.Invoke($"{RuleId}: checking {context.ConstructorDependencies.Count} constructor dependency record(s) for broad configuration injection.");
+        var findings = context.ConstructorDependencies
             .Where(d => _classifier.IsConfigurationType(d.ParameterType))
             .Select(d => RuleHelpers.Finding(RuleId, Name, DiFindingSeverity.Warning, $"`{d.DeclaringType.DisplayName}` injects broad configuration type `{d.ParameterType.DisplayName}`.", d.Location, 0.80,
                 "Create a strongly typed options class and inject IOptions<T>, IOptionsSnapshot<T>, or IOptionsMonitor<T>."))
             .ToArray();
+        context.Progress?.Invoke($"{RuleId}: options-pattern check completed, findings {findings.Length}.");
+        return findings;
     }
 }
 

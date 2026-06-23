@@ -10,7 +10,7 @@ if (options is null)
 try
 {
     var runner = new DiAuditRunner();
-    return await runner.RunAsync(options.InputPath, Path.Combine(Directory.GetCurrentDirectory(), CliOptions.DefaultReportFileName), CancellationToken.None);
+    return await runner.RunAsync(options.InputPath, Path.Combine(Directory.GetCurrentDirectory(), CliOptions.DefaultReportFileName), options.TargetFramework, CancellationToken.None);
 }
 catch (Exception ex)
 {
