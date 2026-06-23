@@ -9,10 +9,10 @@ public sealed class IntegrationTests
     public async Task Good_sample_has_no_blocking_findings()
     {
         var report = Path.Combine(Path.GetTempPath(), $"good-di-audit-{Guid.NewGuid():N}.md");
-        var exitCode = await new DiAuditRunner().RunAsync(Path.Combine(RepositoryRoot(), "samples", "GoodDiSample"), report, CancellationToken.None);
+        var exitCode = await new DiAuditRunner().RunAsync(Path.Combine(RepositoryRoot(), "samples", "GoodDiSample"), report, TestContext.Current.CancellationToken);
 
         exitCode.Should().Be(0);
-        var text = await File.ReadAllTextAsync(report);
+        var text = await File.ReadAllTextAsync(report, TestContext.Current.CancellationToken);
         text.Should().Contain("PASSED - no blocking Dependency Injection issues found.");
         text.Should().NotContain("### DI007");
         text.Should().NotContain("### DI011");
@@ -23,10 +23,10 @@ public sealed class IntegrationTests
     public async Task Bad_sample_reports_blocking_and_warning_rules()
     {
         var report = Path.Combine(Path.GetTempPath(), $"bad-di-audit-{Guid.NewGuid():N}.md");
-        var exitCode = await new DiAuditRunner().RunAsync(Path.Combine(RepositoryRoot(), "samples", "BadDiSample"), report, CancellationToken.None);
+        var exitCode = await new DiAuditRunner().RunAsync(Path.Combine(RepositoryRoot(), "samples", "BadDiSample"), report, TestContext.Current.CancellationToken);
 
         exitCode.Should().Be(1);
-        var text = await File.ReadAllTextAsync(report);
+        var text = await File.ReadAllTextAsync(report, TestContext.Current.CancellationToken);
         text.Should().Contain("### DI007");
         text.Should().Contain("### DI011");
         text.Should().Contain("### DI010");
