@@ -4,11 +4,11 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-if (Test-Path "./src/DotnetDiRulesAudit/DotnetDiRulesAudit.csproj") {
-    dotnet run --project "./src/DotnetDiRulesAudit" -- $Root
+if (Test-Path "./src/DIRulesAudit/DIRulesAudit.csproj") {
+    dotnet run --project "./src/DIRulesAudit" -- $Root
 }
-elseif (Test-Path (Join-Path $Root "src/DotnetDiRulesAudit/DotnetDiRulesAudit.csproj")) {
-    dotnet run --project (Join-Path $Root "src/DotnetDiRulesAudit") -- $Root
+elseif (Test-Path (Join-Path $Root "src/DIRulesAudit/DIRulesAudit.csproj")) {
+    dotnet run --project (Join-Path $Root "src/DIRulesAudit") -- $Root
 }
 else {
     dotnet tool run dotnet-di-rules-audit $Root

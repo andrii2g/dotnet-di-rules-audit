@@ -1,4 +1,4 @@
-﻿using A2G.DIRulesAudit.Analysis;
+using A2G.DIRulesAudit.Analysis;
 using FluentAssertions;
 
 namespace A2G.DIRulesAudit.Tests;
@@ -38,7 +38,7 @@ public sealed class IntegrationTests
         var directory = AppContext.BaseDirectory;
         while (!string.IsNullOrWhiteSpace(directory))
         {
-            if (File.Exists(Path.Combine(directory, "DotnetDiRulesAudit.slnx")))
+            if (File.Exists(Path.Combine(directory, "DIRulesAudit.slnx")))
             {
                 return directory;
             }

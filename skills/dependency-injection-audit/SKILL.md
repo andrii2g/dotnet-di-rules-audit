@@ -14,7 +14,7 @@ Run the repository's DI audit tool and use the generated Markdown report as the 
 ## Command
 
 ```bash
-dotnet run --project src/DotnetDiRulesAudit -- .
+dotnet run --project src/DIRulesAudit -- .
 ```
 
 Expected output:

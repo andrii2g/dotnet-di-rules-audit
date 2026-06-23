@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
@@ -7,7 +7,7 @@
     <RootNamespace>A2G.DIRulesAudit</RootNamespace>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>dotnet-di-rules-audit</ToolCommandName>
-    <PackageId>DotnetDiRulesAudit</PackageId>
+    <PackageId>DIRulesAudit</PackageId>
     <Description>Audits ASP.NET Core Dependency Injection usage and generates a Markdown report.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/andrii2g/dotnet-di-rules-audit</RepositoryUrl>

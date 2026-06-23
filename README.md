@@ -9,14 +9,14 @@ From the repository root:
 ```bash
 export DOTNET_CLI_HOME="$PWD/.dotnet-home"
 export NUGET_PACKAGES="$PWD/.nuget-packages"
-dotnet restore DotnetDiRulesAudit.slnx --configfile NuGet.Config
-dotnet run --no-restore --project tests/DotnetDiRulesAudit.Tests
+dotnet restore DIRulesAudit.slnx --configfile NuGet.Config
+dotnet run --no-restore --project tests/DIRulesAudit.Tests
 ```
 
 Run the clean sample:
 
 ```bash
-dotnet run --no-restore --project src/DotnetDiRulesAudit -- samples/GoodDiSample
+dotnet run --no-restore --project src/DIRulesAudit -- samples/GoodDiSample
 ```
 
 Expected result:
@@ -29,7 +29,7 @@ Result: PASSED
 Run the intentionally bad sample:
 
 ```bash
-dotnet run --no-restore --project src/DotnetDiRulesAudit -- samples/BadDiSample
+dotnet run --no-restore --project src/DIRulesAudit -- samples/BadDiSample
 ```
 
 Expected result:
@@ -48,21 +48,21 @@ cat DI_AUDIT_REPORT.md
 Use the tool on your own solution, project, or repository folder:
 
 ```bash
-dotnet run --project src/DotnetDiRulesAudit -- /path/to/YourSolution.sln
-dotnet run --project src/DotnetDiRulesAudit -- /path/to/YourProject.csproj
-dotnet run --project src/DotnetDiRulesAudit -- /path/to/repo
+dotnet run --project src/DIRulesAudit -- /path/to/YourSolution.sln
+dotnet run --project src/DIRulesAudit -- /path/to/YourProject.csproj
+dotnet run --project src/DIRulesAudit -- /path/to/repo
 ```
 
 For multi-targeted projects, the analyzer keeps one loaded target-framework instance per project file. By default it uses the first target framework loaded by MSBuildWorkspace. To prefer a specific TFM for multi-targeted projects:
 
 ```bash
-dotnet run --project src/DotnetDiRulesAudit -- --framework net8.0 /path/to/YourSolution.sln
+dotnet run --project src/DIRulesAudit -- --framework net8.0 /path/to/YourSolution.sln
 ```
 
 ## Usage
 
 ```bash
-dotnet run --project src/DotnetDiRulesAudit -- ./samples/BadDiSample
+dotnet run --project src/DIRulesAudit -- ./samples/BadDiSample
 ```
 
 The command writes `DI_AUDIT_REPORT.md` in the current directory.
