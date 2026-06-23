@@ -73,7 +73,7 @@ public sealed class DiAuditRunner
         var graph = _graphBuilder.Build(registrations, dependencies);
         progress.Write($"Dependency graph built: {graph.Nodes.Count} node(s), {graph.Edges.Count} edge(s), {graph.UnresolvedDependencies.Count} unresolved dependency record(s).");
 
-        var context = new RuleContext(loadResult.Projects, registrations, dependencies, graph, loadResult.Diagnostics);
+        var context = new RuleContext(loadResult.Projects, registrations, dependencies, graph, loadResult.Diagnostics, progress.Write);
         var findings = new List<DiFinding>();
         foreach (var rule in DiRules.All)
         {

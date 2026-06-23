@@ -2,6 +2,7 @@
 using A2G.DIRulesAudit.Model;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Diagnostics;
 
 namespace A2G.DIRulesAudit.Rules;
 
@@ -17,7 +18,8 @@ public sealed record RuleContext(
     IReadOnlyList<ServiceRegistration> Registrations,
     IReadOnlyList<ConstructorDependency> ConstructorDependencies,
     DependencyGraph Graph,
-    IReadOnlyList<string> WorkspaceDiagnostics);
+    IReadOnlyList<string> WorkspaceDiagnostics,
+    Action<string>? Progress = null);
 
 public static class DiRules
 {
@@ -73,7 +75,7 @@ public sealed class SingletonCapturesTransientRule : IDiRule
 
     public IReadOnlyList<DiFinding> Analyze(RuleContext context)
     {
-        return RuleHelpers.FindLifetimePaths(context.Graph, ServiceLifetimeKind.Singleton, ServiceLifetimeKind.Transient)
+        return RuleHelpers.FindLifetimePaths(context.Graph, ServiceLifetimeKind.Singleton, ServiceLifetimeKind.Transient, RuleId, context.Progress)
             .Select(path => RuleHelpers.Finding(RuleId, Name, DiFindingSeverity.Warning, $"Singleton dependency path captures transient service: {RuleHelpers.FormatPath(path)}.", path.First().Location, 0.80,
                 "Review whether the transient is stateless and thread-safe."))
             .ToArray();
@@ -87,7 +89,7 @@ public sealed class SingletonCapturesScopedRule : IDiRule
 
     public IReadOnlyList<DiFinding> Analyze(RuleContext context)
     {
-        return RuleHelpers.FindLifetimePaths(context.Graph, ServiceLifetimeKind.Singleton, ServiceLifetimeKind.Scoped)
+        return RuleHelpers.FindLifetimePaths(context.Graph, ServiceLifetimeKind.Singleton, ServiceLifetimeKind.Scoped, RuleId, context.Progress)
             .Select(path => RuleHelpers.Finding(RuleId, Name, DiFindingSeverity.Error, $"Singleton dependency path captures scoped service: {RuleHelpers.FormatPath(path)}.", path.First().Location, 1.00,
                 "Inject IServiceScopeFactory and resolve scoped services inside a created scope."))
             .ToArray();
@@ -258,19 +260,55 @@ public static DiFinding Finding(string ruleId, string name, DiFindingSeverity se
     return new DiFinding(ruleId, name, severity, message, location, new Dictionary<string, string>(), recommendation, confidence);
 }
 
-public static IReadOnlyList<IReadOnlyList<DependencyEdge>> FindLifetimePaths(DependencyGraph graph, ServiceLifetimeKind from, ServiceLifetimeKind to)
+public static IReadOnlyList<IReadOnlyList<DependencyEdge>> FindLifetimePaths(
+    DependencyGraph graph,
+    ServiceLifetimeKind from,
+    ServiceLifetimeKind to,
+    string ruleId,
+    Action<string>? progress)
 {
     var results = new List<IReadOnlyList<DependencyEdge>>();
-    foreach (var edge in graph.Edges.Where(e => e.IsResolved && e.FromLifetime == from))
+    var rootEdges = graph.Edges.Where(e => e.IsResolved && e.FromLifetime == from).ToArray();
+    var traversedEdges = 0;
+    var stopwatch = Stopwatch.StartNew();
+    var lastProgress = TimeSpan.Zero;
+
+    progress?.Invoke($"{ruleId}: lifetime path search started: {rootEdges.Length} root edge(s), {graph.Edges.Count} total edge(s), target lifetime {to}.");
+
+    for (var i = 0; i < rootEdges.Length; i++)
     {
-        Walk(graph, edge, to, [], results);
+        Walk(graph, rootEdges[i], to, [], results, ref traversedEdges, () =>
+        {
+            if (stopwatch.Elapsed - lastProgress < TimeSpan.FromSeconds(2))
+            {
+                return;
+            }
+
+            lastProgress = stopwatch.Elapsed;
+            progress?.Invoke($"{ruleId}: lifetime path search still running: root {i + 1}/{rootEdges.Length}, traversed {traversedEdges} edge visit(s), findings so far {results.Count}.");
+        });
     }
 
-    return results.DistinctBy(FormatPath).ToArray();
+    var distinctResults = results.DistinctBy(FormatPath).ToArray();
+    progress?.Invoke($"{ruleId}: lifetime path search completed: traversed {traversedEdges} edge visit(s), findings {distinctResults.Length}.");
+    return distinctResults;
 }
 
-private static void Walk(DependencyGraph graph, DependencyEdge current, ServiceLifetimeKind target, List<DependencyEdge> path, List<IReadOnlyList<DependencyEdge>> results)
+private static void Walk(
+    DependencyGraph graph,
+    DependencyEdge current,
+    ServiceLifetimeKind target,
+    List<DependencyEdge> path,
+    List<IReadOnlyList<DependencyEdge>> results,
+    ref int traversedEdges,
+    Action reportProgress)
 {
+    traversedEdges++;
+    if (traversedEdges % 1_000 == 0)
+    {
+        reportProgress();
+    }
+
     if (path.Count > 20)
     {
         return;
@@ -288,7 +326,7 @@ private static void Walk(DependencyGraph graph, DependencyEdge current, ServiceL
     {
         if (!path.Any(p => p.FromType.SameType(next.FromType) && p.ToType.SameType(next.ToType)))
         {
-            Walk(graph, next, target, path, results);
+            Walk(graph, next, target, path, results, ref traversedEdges, reportProgress);
         }
     }
 
