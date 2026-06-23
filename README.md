@@ -2,6 +2,57 @@
 
 `DI Audit` is a small .NET CLI that statically audits Dependency Injection usage in .NET and ASP.NET Core solutions and writes a Markdown report.
 
+## Quickstart
+
+From the repository root:
+
+```bash
+export DOTNET_CLI_HOME="$PWD/.dotnet-home"
+export NUGET_PACKAGES="$PWD/.nuget-packages"
+dotnet restore DotnetDiRulesAudit.slnx --configfile NuGet.Config
+dotnet test DotnetDiRulesAudit.slnx --no-restore
+```
+
+Run the clean sample:
+
+```bash
+dotnet run --no-restore --project src/DotnetDiRulesAudit -- samples/GoodDiSample
+```
+
+Expected result:
+
+```text
+Errors: 0
+Result: PASSED
+```
+
+Run the intentionally bad sample:
+
+```bash
+dotnet run --no-restore --project src/DotnetDiRulesAudit -- samples/BadDiSample
+```
+
+Expected result:
+
+```text
+Errors: 2
+Result: FAILED
+```
+
+Open the generated report:
+
+```bash
+cat DI_AUDIT_REPORT.md
+```
+
+Use the tool on your own solution, project, or repository folder:
+
+```bash
+dotnet run --project src/DotnetDiRulesAudit -- /path/to/YourSolution.sln
+dotnet run --project src/DotnetDiRulesAudit -- /path/to/YourProject.csproj
+dotnet run --project src/DotnetDiRulesAudit -- /path/to/repo
+```
+
 ## Usage
 
 ```bash
