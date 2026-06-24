@@ -1,4 +1,4 @@
-# dotnet-di-rules-audit
+# DI Rules Audit
 
 `DI Audit` is a small .NET CLI that statically audits Dependency Injection usage in .NET and ASP.NET Core solutions and writes a Markdown report.
 
